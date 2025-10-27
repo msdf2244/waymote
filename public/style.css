@@ -1,0 +1,18 @@
+body {
+  overflow: hidden; /* Prevents both horizontal and vertical scrolling */
+  touch-action: none; /* Disables default touch actions like pan and zoom */
+}
+
+#mouse-area {
+    width: 250px;
+    height: 250px;
+    border: 2px solid #333;
+    background-color: #f0f0f0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin: 50px auto;
+    overflow: hidden; /* Prevents both horizontal and vertical scrolling */
+    touch-action: none; /* Disables default touch actions like pan and zoom */
+}

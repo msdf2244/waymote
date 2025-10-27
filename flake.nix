@@ -13,7 +13,7 @@
       in
       {
         devShell = with pkgs; mkShell {
-          buildInputs = [ cargo rustc rustfmt pre-commit rustPackages.clippy neovim ];
+          buildInputs = [ cargo rustc rustfmt pre-commit rustPackages.clippy cargo-watch neovim ];
           RUST_SRC_PATH = rustPlatform.rustLibSrc;
         };
       }
