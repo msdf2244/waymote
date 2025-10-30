@@ -1,10 +1,10 @@
 const mouseAcceleration = 2.0;
-const dragAcceleration = 0.5;
+const dragAcceleration = 0.25;
 const DEBUG = false;
 const keymap = {
-  "Enter": "enter",
-  "Backspace": "backspace",
-  "Escape": "esc",
+  Enter: "enter",
+  Backspace: "backspace",
+  Escape: "esc",
   ";": "semicolon",
   ":": "colon",
   "'": "apostrophe",
@@ -13,58 +13,60 @@ const keymap = {
   "/": "slash",
   "[": "leftbrace",
   "]": "rightbrace",
-}
+};
 
 var socket = null;
-function connect() {
-  if (!socket || socket.readyState == WebSocket.CLOSED || socket.readyState == WebSocket.CLOSING) {
-    // Create WebSocket connection. 
+function connect(fn) {
+  if (
+    !socket ||
+    socket.readyState == WebSocket.CLOSED ||
+    socket.readyState == WebSocket.CLOSING
+  ) {
+    // Create WebSocket connection.
     socket = new WebSocket(`ws://${location.host}/remote`);
     socket.onopen = () => {
-      document.querySelector("#keys").disabled = false;
-    }
+      document.querySelector("#keyboard").disabled = false;
+      fn();
+    };
     socket.onclose = () => {
-      document.querySelector("#keys").disabled = true;
-    }
+      document.querySelector("#keyboard").disabled = true;
+    };
+  } else {
+    fn();
   }
 }
 
 function sendMessage(payload) {
   // Reconnect if necessary
-  connect()
-  socket.send(JSON.stringify(payload))
+  connect(() => socket.send(JSON.stringify(payload)));
 }
 
 function log(line) {
   if (DEBUG) {
     let debug = document.querySelector("#debug");
-    debug.innerHTML += `${line}<br>`
+    debug.innerHTML += `${line}<br>`;
   }
 }
 
-function keyAction(key) {
-  let value = keymap[key] ?? key;
-  sendMessage({ Key: { value } });
-}
-
-
 function setupMouseControl() {
-  const mouseArea = document.querySelector("#mouse-area");
+  const mouse = document.querySelector("#mouse");
   let startX = null;
   let startY = null;
   let isDragging = false;
   let fingers = null;
+  let touchStart = null;
 
-  mouseArea.addEventListener("touchstart", (e) => {
+  mouse.addEventListener("touchstart", (e) => {
     e.preventDefault();
+    touchStart = true;
     const touch = e.touches[0];
     startX = touch.clientX;
     startY = touch.clientY;
-    fingers = e.touches.length
+    fingers = e.touches.length;
     isDragging = false;
   });
 
-  mouseArea.addEventListener("touchmove", (e) => {
+  mouse.addEventListener("touchmove", (e) => {
     e.preventDefault();
     isDragging = true;
     const touch = e.touches[0];
@@ -73,26 +75,72 @@ function setupMouseControl() {
     startX = touch.clientX;
     startY = touch.clientY;
     switch (fingers) {
-      case 1: sendMessage({ MouseMove: { x: deltaX * mouseAcceleration, y: deltaY * mouseAcceleration }}); break;
-      case 2: sendMessage({ Drag: { amount: deltaY * dragAcceleration }}); break;
+      case 1:
+        sendMessage({
+          MouseMove: {
+            x: deltaX * mouseAcceleration,
+            y: deltaY * mouseAcceleration,
+          },
+        });
+        break;
+      case 2:
+        sendMessage({
+          Drag: { x: deltaX * dragAcceleration, y: deltaY * dragAcceleration },
+        });
+        break;
     }
   });
-  mouseArea.addEventListener("touchend", (e) => {
-    if (!isDragging) {
+  mouse.addEventListener("touchend", (e) => {
+    if (!isDragging && touchStart) {
       switch (fingers) {
-        case 1: sendMessage("LeftClick"); break;
-        case 2: sendMessage("RightClick"); break;
-        case 3: sendMessage("MiddleClick"); break;
+        case 1:
+          sendMessage("LeftClick");
+          break;
+        case 2:
+          sendMessage("RightClick");
+          break;
+        case 3:
+          sendMessage("MiddleClick");
+          break;
       }
     }
     isDragging = false;
+    touchStart = false;
   });
 }
 
-document.addEventListener('DOMContentLoaded', function() {
+function setupKeyboardContol() {
+  const keyboard = document.querySelector("#keyboard");
+  keyboard.addEventListener("keydown", (e) => {
+    let value = keymap[e.key] ?? e.key;
+    sendMessage({ Key: { value } });
+  });
+}
+
+function setupAppShortcuts() {
+  const openApp = (name) => sendMessage({ Open: { value: name } });
+
+  const apps = ["steam", "firefox", "spotify", "audio"];
+  apps.forEach(
+    (id) => (document.getElementById(id).onclick = () => openApp(id)),
+  );
+}
+
+function setupVolumeControl() {
+  const volumeIncrease = document.querySelector("#volume-increase");
+  const volumeMute = document.querySelector("#volume-mute");
+  const volumeDecrease = document.querySelector("#volume-decrease");
+  volumeIncrease.addEventListener("click", () => sendMessage("IncreaseVolume"));
+  volumeMute.addEventListener("click", () => sendMessage("ToggleMuteVolume"));
+  volumeDecrease.addEventListener("click", () => sendMessage("DecreaseVolume"));
+}
+
+document.addEventListener("DOMContentLoaded", () => {
   log("Starting");
-  connect()
-  const keys = document.querySelector("#keys");
+  connect();
+
   setupMouseControl();
-  keys.addEventListener("keydown", (e) => keyAction(e.key));
+  setupKeyboardContol();
+  setupVolumeControl();
+  setupAppShortcuts();
 });

@@ -16,13 +16,17 @@ enum Action {
     Key { value: String },
     Niri { value: String },
     MouseMove { x: f64, y: f64 },
-    Drag { amount: f64 },
+    Drag { x: f64, y: f64 },
     LeftClick,
     MiddleClick,
     RightClick,
+    Open { value: String },
+    IncreaseVolume,
+    DecreaseVolume,
+    ToggleMuteVolume,
 }
 
-fn dotoolc(command: &str) -> String {
+fn dotoolc(command: &str) {
     let mut child = Command::new("dotoolc")
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
@@ -32,19 +36,61 @@ fn dotoolc(command: &str) -> String {
     let stdin = child.stdin.as_mut().expect("Failed to open stdin");
     let input = command.as_bytes().to_vec();
     stdin.write_all(&input).unwrap();
-    let output = child.wait_with_output().unwrap().stdout;
-    String::from_utf8(output).unwrap()
 }
 
-fn niri(command: &str) -> String {
-    let child = Command::new("niri")
+fn niri(command: &str) {
+    Command::new("niri")
         .arg("msg")
         .arg("action")
         .arg(command)
         .spawn()
         .unwrap();
-    let output = child.wait_with_output().unwrap().stdout;
-    String::from_utf8(output).unwrap()
+}
+
+fn open_steam() {
+    Command::new("steam")
+        .arg("steam://open/bigpicture")
+        .spawn()
+        .unwrap();
+}
+
+fn open_firefox() {
+    Command::new("firefox").spawn().unwrap();
+}
+
+fn open_audio() {
+    Command::new("pavucontrol").spawn().unwrap();
+}
+
+fn open_spotify() {
+    Command::new("spotify").spawn().unwrap();
+}
+
+fn increase_volume() {
+    Command::new("wpctl")
+        .arg("set-volume")
+        .arg("@DEFAULT_AUDIO_SINK@")
+        .arg("10%+")
+        .spawn()
+        .unwrap();
+}
+
+fn decrease_volume() {
+    Command::new("wpctl")
+        .arg("set-volume")
+        .arg("@DEFAULT_AUDIO_SINK@")
+        .arg("10%-")
+        .spawn()
+        .unwrap();
+}
+
+fn toggle_mute_volume() {
+    Command::new("wpctl")
+        .arg("set-mute")
+        .arg("@DEFAULT_AUDIO_SINK@")
+        .arg("toggle")
+        .spawn()
+        .unwrap();
 }
 
 async fn handle_message(socket: &mut WebSocket, message: &Message) {
@@ -61,18 +107,28 @@ async fn handle_message(socket: &mut WebSocket, message: &Message) {
         }
     };
     info!("Message: {action:?}");
-    let output = match action {
+    match action {
         Action::Key { value } => dotoolc(&format!("key {}\n", value)),
-        Action::MouseMove { x, y } => dotoolc(&format!("mousemove {x} {y}\n")), 
-        Action::Drag { amount } => dotoolc(&format!("wheel {amount}\n")), 
+        Action::MouseMove { x, y } => dotoolc(&format!("mousemove {x} {y}\n")),
+        Action::Drag { x, y } => dotoolc(&format!("hwheel {x}\nwheel {y}\n")),
         Action::LeftClick => dotoolc("click left\n"),
         Action::MiddleClick => dotoolc("click middle\n"),
         Action::RightClick => dotoolc("click right\n"),
         Action::Niri { value } => niri(&value),
+        Action::Open { value } => match value.as_ref() {
+            "steam" => open_steam(),
+            "firefox" => open_firefox(),
+            "audio" => open_audio(),
+            "spotify" => open_spotify(),
+            _ => {
+                let _ = socket.send(format!("Not recognized: {value}").into()).await;
+                return;
+            }
+        },
+        Action::IncreaseVolume => increase_volume(),
+        Action::DecreaseVolume => decrease_volume(),
+        Action::ToggleMuteVolume => toggle_mute_volume(),
     };
-    if output.len() > 0 {
-        info!("Output: {output}");
-    }
     let _ = socket.send("I understood your message!".into()).await;
 }
 

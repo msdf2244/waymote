@@ -8,8 +8,23 @@
     <link rel="stylesheet" href="style.css">
   </head>
   <body>
-    <textarea id="keys" disabled></textarea>
-    <div id="mouse-area"></div>
+    <div id="root">
+      <div id="kvm-container">
+        <textarea id="keyboard" disabled></textarea>
+        <div id="mouse"></div>
+      </div>
+      <div id="app-shortcuts-container">
+        <button id="steam">Steam</button>
+        <button id="spotify">Spotify</button>
+        <button id="firefox">Firefox</button>
+        <button id="audio">Audio</button>
+      </div>
+      <div id="volume-controls-container">
+        <button id="volume-increase">VOLUME +</button>
+        <button id="volume-mute">MUTE</button>
+        <button id="volume-decrease">VOLUME -</button>
+      </div>
+    </div>
     <p id="debug"></p>
     <script src="index.js"></script>
   </body>
