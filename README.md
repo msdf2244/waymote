@@ -1,7 +1,8 @@
 # README
 
 ## TODO
-- [ ] Deployment
+- [ ] Refactor to use crates: uinput, dirs, pipewire & consider alternative to web sockets
+- [X] Deployment
 - [ ] Audio sink switching
 - [ ] Mic controls
 - [ ] Tabs?

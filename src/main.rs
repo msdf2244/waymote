@@ -155,7 +155,7 @@ async fn main() {
         )
         .nest_service("/static", ServeDir::new("public")); // Serve files from 'public' directory under /static;
 
-    let port = "3000";
+    let port = "3030";
     let host = "0.0.0.0";
     let address = format!("{}:{}", host, port);
 
