@@ -26,6 +26,7 @@
           src = pkgs.lib.cleanSource ./.;
 
           cargoLock.lockFile = ./Cargo.lock;
+          buildInputs = [ pkgs.dotool ];
         };
         devShell =
           with pkgs;
