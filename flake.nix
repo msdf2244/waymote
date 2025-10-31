@@ -27,6 +27,7 @@
 
           cargoLock.lockFile = ./Cargo.lock;
           buildInputs = [ pkgs.dotool ];
+          postInstall = ''cp -r ./public/ $out/public'';
         };
         devShell =
           with pkgs;
