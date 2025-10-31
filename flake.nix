@@ -5,17 +5,42 @@
     mynvim.url = "github:msdf2244/my-nvim";
   };
 
-  outputs = { self, nixpkgs, utils, mynvim }:
-    utils.lib.eachDefaultSystem (system:
+  outputs =
+    {
+      self,
+      nixpkgs,
+      utils,
+      mynvim,
+    }:
+    utils.lib.eachDefaultSystem (
+      system:
       let
         pkgs = import nixpkgs { inherit system; };
         neovim = mynvim.packages.default;
       in
       {
-        devShell = with pkgs; mkShell {
-          buildInputs = [ cargo rustc rustfmt pre-commit rustPackages.clippy cargo-watch neovim ];
-          RUST_SRC_PATH = rustPlatform.rustLibSrc;
+        packages.default = pkgs.rustPlatform.buildRustPackage {
+          pname = "waymote";
+          version = "0.1.0";
+
+          src = pkgs.lib.cleanSource ./.;
+
+          cargoLock.lockFile = ./Cargo.lock;
         };
+        devShell =
+          with pkgs;
+          mkShell {
+            buildInputs = [
+              cargo
+              rustc
+              rustfmt
+              pre-commit
+              rustPackages.clippy
+              cargo-watch
+              neovim
+            ];
+            RUST_SRC_PATH = rustPlatform.rustLibSrc;
+          };
       }
     );
 }
