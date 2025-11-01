@@ -26,7 +26,11 @@
           src = pkgs.lib.cleanSource ./.;
 
           cargoLock.lockFile = ./Cargo.lock;
-          buildInputs = [ pkgs.dotool ];
+          buildInputs = with pkgs; [
+            pkg-config
+            udev
+            libxkbcommon
+          ];
           postInstall = ''cp -r ./public/ $out/public'';
         };
         devShell =
@@ -39,9 +43,13 @@
               pre-commit
               rustPackages.clippy
               cargo-watch
+              pkg-config
+              udev
+              libxkbcommon
               neovim
             ];
             RUST_SRC_PATH = rustPlatform.rustLibSrc;
+            RUST_LOG = "info";
           };
       }
     );

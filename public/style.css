@@ -51,3 +51,39 @@ button {
     width: 100px;
     height: 50px;
 }
+
+div#scroll-container {
+  width: 150px;
+  height: 150px;
+  display: grid;
+  grid: 50px 50px 50px / 50px 50px 50px;
+  place-items: center center;
+}
+
+button#scroll-left {
+  width: 50px;
+  height: 50px;
+  grid-row-start: 2;
+  grid-column-start: 1;
+}
+
+button#scroll-up {
+  width: 50px;
+  height: 50px;
+  grid-row-start: 1;
+  grid-column-start: 2;
+}
+
+button#scroll-down {
+  width: 50px;
+  height: 50px;
+  grid-row-start: 3;
+  grid-column-start: 2;
+}
+
+button#scroll-right {
+  width: 50px;
+  height: 50px;
+  grid-row-start: 2;
+  grid-column-start: 3;
+}

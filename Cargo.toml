@@ -4,7 +4,10 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+anyhow = "1.0.100"
+applications = "0.3.1"
 axum = { version = "0.8.6", features = ["ws"] }
+enigo = { version = "0.6.1", features = ["wayland"] }
 env_logger = "0.11.8"
 log = "0.4.28"
 serde = { version = "1.0.228", features = ["derive"] }

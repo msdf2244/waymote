@@ -1,44 +1,55 @@
-const mouseAcceleration = 2.0;
+const mouseAcceleration = 3.0;
 const dragAcceleration = 0.25;
 const DEBUG = false;
 const keymap = {
-  Enter: "enter",
-  Backspace: "backspace",
-  Escape: "esc",
-  ";": "semicolon",
-  ":": "colon",
-  "'": "apostrophe",
-  "\\": "backslash",
-  " ": "space",
-  "/": "slash",
-  "[": "leftbrace",
-  "]": "rightbrace",
+  Backspace: "Backspace",
+  Enter: "Return",
+  Escape: "Escape",
 };
 
-var socket = null;
-function connect(fn) {
-  if (
-    !socket ||
-    socket.readyState == WebSocket.CLOSED ||
-    socket.readyState == WebSocket.CLOSING
-  ) {
-    // Create WebSocket connection.
-    socket = new WebSocket(`ws://${location.host}/remote`);
-    socket.onopen = () => {
-      document.querySelector("#keyboard").disabled = false;
-      fn();
-    };
-    socket.onclose = () => {
-      document.querySelector("#keyboard").disabled = true;
-    };
-  } else {
-    fn();
-  }
+function debounce(func, delay) {
+  let timeoutId; // This will store the timer ID
+
+  return function (...args) {
+    // Returns a new function that will be called
+    const context = this; // Preserve the 'this' context
+
+    clearTimeout(timeoutId); // Clear any existing timer
+
+    timeoutId = setTimeout(() => {
+      // Set a new timer
+      func.apply(context, args); // Execute the original function after the delay
+    }, delay);
+  };
 }
 
-function sendMessage(payload) {
-  // Reconnect if necessary
-  connect(() => socket.send(JSON.stringify(payload)));
+let socket = null;
+
+function connect() {
+  // Create WebSocket connection.
+  return new WebSocket(`ws://${location.host}/remote`);
+}
+
+function waitForSocketConnection() {
+  return new Promise((resolve) => {
+    if (socket.readyState === WebSocket.OPEN) {
+      resolve();
+    } else {
+      if (
+        socket.readyState === WebSocket.CLOSED ||
+        socket.readyState === WebSocket.CLOSING
+      )
+        socket = connect();
+      socket.onopen = () => {
+        resolve();
+      };
+    }
+  });
+}
+
+async function sendMessage(message) {
+  await waitForSocketConnection(socket);
+  socket.send(JSON.stringify(message));
 }
 
 function log(line) {
@@ -83,14 +94,9 @@ function setupMouseControl() {
           },
         });
         break;
-      case 2:
-        sendMessage({
-          Drag: { x: deltaX * dragAcceleration, y: deltaY * dragAcceleration },
-        });
-        break;
     }
   });
-  mouse.addEventListener("touchend", (e) => {
+  mouse.addEventListener("touchend", () => {
     if (!isDragging && touchStart) {
       switch (fingers) {
         case 1:
@@ -109,21 +115,67 @@ function setupMouseControl() {
   });
 }
 
-function setupKeyboardContol() {
-  const keyboard = document.querySelector("#keyboard");
-  keyboard.addEventListener("keydown", (e) => {
-    let value = keymap[e.key] ?? e.key;
-    sendMessage({ Key: { value } });
+function setupHold(button, delay, action) {
+  let timeoutId;
+  let repeat = () => {
+    action();
+    timeoutId = setTimeout(repeat, delay);
+  };
+
+  button.addEventListener("touchstart", (e) => {
+    e.preventDefault();
+    repeat();
+  });
+
+  button.addEventListener("touchend", (e) => {
+    e.preventDefault();
+    clearTimeout(timeoutId);
   });
 }
 
-function setupAppShortcuts() {
-  const openApp = (name) => sendMessage({ Open: { value: name } });
+function setupScrollControl() {
+  let scrollUp = document.querySelector("#scroll-up");
+  let scrollDown = document.querySelector("#scroll-down");
+  let scrollLeft = document.querySelector("#scroll-left");
+  let scrollRight = document.querySelector("#scroll-right");
+  let delay = 25;
+  setupHold(scrollUp, delay, () => {
+    sendMessage({
+      Scroll: { x: 0, y: -1 },
+    });
+  });
+  setupHold(scrollLeft, delay, () => {
+    sendMessage({
+      Scroll: { x: -1, y: 0 },
+    });
+  });
+  setupHold(scrollDown, delay, () => {
+    sendMessage({
+      Scroll: { x: 0, y: 1 },
+    });
+  });
+  setupHold(scrollRight, delay, () => {
+    sendMessage({
+      Scroll: { x: 1, y: 0 },
+    });
+  });
+}
 
-  const apps = ["steam", "firefox", "spotify", "audio"];
-  apps.forEach(
-    (id) => (document.getElementById(id).onclick = () => openApp(id)),
-  );
+function setupKeyboardContol() {
+  const keyboard = document.querySelector("#keyboard");
+  keyboard.addEventListener("keydown", (e) => {
+    if (e.key in keymap) {
+      sendMessage({ KeyCode: { value: keymap[e.key] } });
+    } else {
+      sendMessage({ Unicode: { value: e.key } });
+    }
+  });
+}
+
+async function setupAppShortcuts() {
+  log("Setting up apps");
+  const capabilities = await sendMessage("GetCapabilities");
+  console.log(capabilities);
 }
 
 function setupVolumeControl() {
@@ -137,9 +189,10 @@ function setupVolumeControl() {
 
 document.addEventListener("DOMContentLoaded", () => {
   log("Starting");
-  connect();
+  socket = connect();
 
   setupMouseControl();
+  setupScrollControl();
   setupKeyboardContol();
   setupVolumeControl();
   setupAppShortcuts();
