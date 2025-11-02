@@ -220,6 +220,9 @@ function setupNiri() {
   const fullscreenWindow = document.querySelector("#fullscreen-window");
   fullscreenWindow.onclick = () => sendNiriCommand("fullscreen-window");
 
+  const closeWindow = document.querySelector("#close-window");
+  closeWindow.onclick = () => sendNiriCommand("close-window");
+
   const workspaceUp = document.querySelector("#workspace-up");
   workspaceUp.onclick = () => sendNiriCommand("focus-workspace-up");
   const workspaceDown = document.querySelector("#workspace-down");
