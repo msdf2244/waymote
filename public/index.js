@@ -1,4 +1,4 @@
-const mouseAcceleration = 3.0;
+const mouseAcceleration = 4.0;
 const dragAcceleration = 0.25;
 const DEBUG = false;
 const keymap = {
@@ -50,6 +50,11 @@ function waitForSocketConnection() {
 async function sendMessage(message) {
   await waitForSocketConnection(socket);
   socket.send(JSON.stringify(message));
+  return new Promise((resolve) => {
+    socket.onmessage = (e) => {
+      resolve(JSON.parse(e.data));
+    };
+  });
 }
 
 function log(line) {
@@ -174,8 +179,18 @@ function setupKeyboardContol() {
 
 async function setupAppShortcuts() {
   log("Setting up apps");
-  const capabilities = await sendMessage("GetCapabilities");
-  console.log(capabilities);
+  const data = await sendMessage("GetCapabilities");
+  const capabilites = data["Capabilities"];
+  const apps = capabilites.apps;
+  const appContainer = document.querySelector("#app-container");
+  apps.sort().forEach((app) => {
+    let button = document.createElement("button");
+    button.innerHTML = app;
+    button.onclick = () => {
+      sendMessage({ Open: { value: app } });
+    };
+    appContainer.appendChild(button);
+  });
 }
 
 function setupVolumeControl() {
@@ -187,6 +202,12 @@ function setupVolumeControl() {
   volumeDecrease.addEventListener("click", () => sendMessage("DecreaseVolume"));
 }
 
+function change(n) {
+  let panels = document.querySelectorAll("main > div");
+  panels.forEach((p) => p.setAttribute("hidden", ""));
+  panels[n - 1].removeAttribute("hidden");
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   log("Starting");
   socket = connect();
@@ -196,4 +217,8 @@ document.addEventListener("DOMContentLoaded", () => {
   setupKeyboardContol();
   setupVolumeControl();
   setupAppShortcuts();
+
+  document
+    .querySelectorAll("nav a")
+    .forEach((e) => e.addEventListener("click", (_) => change(e.dataset.id)));
 });

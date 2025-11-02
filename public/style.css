@@ -15,10 +15,9 @@ body {
   align-items: center;
 }
 
-#app-shortcuts-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
+#app-container {
+  display: grid;
+  grid-template-columns: auto auto auto;
 }
 
 #volume-controls-container {
@@ -42,7 +41,7 @@ body {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    margin: 50px auto;
+    margin: 25px auto;
     overflow: hidden; /* Prevents both horizontal and vertical scrolling */
     touch-action: none; /* Disables default touch actions like pan and zoom */
 }
@@ -53,8 +52,8 @@ button {
 }
 
 div#scroll-container {
-  width: 150px;
-  height: 150px;
+  width: 100x;
+  height: 100px;
   display: grid;
   grid: 50px 50px 50px / 50px 50px 50px;
   place-items: center center;
@@ -86,4 +85,34 @@ button#scroll-right {
   height: 50px;
   grid-row-start: 2;
   grid-column-start: 3;
+}
+
+.container {
+  display: flex;
+}
+
+nav {
+  background-color: #333;
+  overflow: hidden;
+  background-color: black;
+  cursor: pointer;
+  margin: 10px;
+}
+
+nav a {
+  float: left;
+  color: #f2f2f2;
+  text-align: center;
+  padding: 14px 16px;
+  text-decoration: none;
+  font-size: 17px;
+}
+
+nav a.active {
+  background-color: white;
+  color: black;
+}
+
+[hidden] {
+  display: none !important;
 }

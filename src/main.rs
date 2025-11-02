@@ -52,6 +52,7 @@ async fn handle_message(
     };
     info!("Raw: {msg:?}");
     let action: Action = serde_json::from_str(&msg)?;
+    let apps = get_available_apps()?;
     info!("Message: {action:?}");
     match action {
         Action::MouseMove { x, y } => enigo.move_mouse(x, y, Coordinate::Rel)?,
@@ -69,14 +70,30 @@ async fn handle_message(
         Action::LeftClick => enigo.button(Button::Left, Direction::Click)?,
         Action::MiddleClick => enigo.button(Button::Middle, Direction::Click)?,
         Action::RightClick => enigo.button(Button::Right, Direction::Click)?,
-        Action::Open { value: _ } => todo!(),
-        Action::ToggleMuteVolume => enigo.key(Key::VolumeMute, Direction::Click)?,
-        Action::DecreaseVolume => enigo.key(Key::VolumeDown, Direction::Click)?,
-        Action::IncreaseVolume => enigo.key(Key::VolumeUp, Direction::Click)?,
+        Action::Open { value } => {
+            if let Some(selection) = apps.iter().find(|app| app.name == value) {
+                let arg = <std::option::Option<PathBuf> as Clone>::clone(&selection.app_path_exe)
+                    .unwrap();
+                info!("Running: {arg:?}");
+                execute::shell(arg).spawn().unwrap();
+            }
+        }
+        Action::ToggleMuteVolume => {
+            execute::shell("wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle").spawn()?;
+        }
+        Action::DecreaseVolume => {
+            execute::shell("wpctl set-volume @DEFAULT_AUDIO_SINK@ 10%-").spawn()?;
+        }
+        Action::IncreaseVolume => {
+            execute::shell("wpctl set-volume @DEFAULT_AUDIO_SINK@ 10%+").spawn()?;
+        }
         Action::GetCapabilities => {
-            let apps = get_available_apps()?;
             let response = Response::Capabilities {
-                apps: apps.iter().map(|app| app.name.clone()).collect(),
+                apps: apps
+                    .iter()
+                    .filter(|app| app.name.len() > 0)
+                    .map(|app| app.name.clone())
+                    .collect(),
             };
             info!("{apps:?}");
             let payload = serde_json::to_string(&response)?;

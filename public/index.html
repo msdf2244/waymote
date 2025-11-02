@@ -9,21 +9,30 @@
   </head>
   <body>
     <div id="root">
-      <div id="kvm-container">
-        <textarea id="keyboard"></textarea>
-        <div id="mouse"></div>
-        <div id="scroll-container">
-          <button id="scroll-up">U</button>
-          <button id="scroll-down">D</button>
-          <button id="scroll-left">L</button>
-          <button id="scroll-right">R</button>
+       <nav> 
+         <a data-id="1" href="#kvm">KVM</a> 
+         <a data-id="2" href="#apps">Apps</a> 
+         <a data-id="3" href="#volume">Volume</a> 
+       </nav>
+      <main>
+        <div id="kvm-container">
+          <textarea id="keyboard"></textarea>
+          <div id="mouse"></div>
+          <div id="scroll-container">
+            <button id="scroll-up">U</button>
+            <button id="scroll-down">D</button>
+            <button id="scroll-left">L</button>
+            <button id="scroll-right">R</button>
+          </div>
         </div>
-      </div>
-      <div id="volume-controls-container">
-        <button id="volume-increase">VOLUME +</button>
-        <button id="volume-mute">MUTE</button>
-        <button id="volume-decrease">VOLUME -</button>
-      </div>
+        <div id="app-container" hidden>
+        </div>
+        <div id="volume-controls-container" hidden>
+          <button id="volume-increase">VOLUME +</button>
+          <button id="volume-mute">MUTE</button>
+          <button id="volume-decrease">VOLUME -</button>
+        </div>
+      </main>
     </div>
     <p id="debug"></p>
     <script src="index.js"></script>

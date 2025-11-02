@@ -30,6 +30,7 @@
             pkg-config
             udev
             libxkbcommon
+            libei
           ];
           postInstall = ''cp -r ./public/ $out/public'';
         };
@@ -46,6 +47,7 @@
               pkg-config
               udev
               libxkbcommon
+              libei
               neovim
             ];
             RUST_SRC_PATH = rustPlatform.rustLibSrc;
