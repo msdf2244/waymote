@@ -8,7 +8,7 @@ use axum::{
 use enigo::{Axis, Button, Coordinate, Direction, Enigo, Key, Keyboard, Mouse, Settings};
 use log::info;
 use serde::{Deserialize, Serialize};
-use std::path::PathBuf;
+use std::{path::PathBuf, process::Command};
 use tower_http::services::ServeDir;
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -24,6 +24,7 @@ enum Action {
     IncreaseVolume,
     DecreaseVolume,
     ToggleMuteVolume,
+    Niri { value: String },
     GetCapabilities,
 }
 
@@ -98,6 +99,13 @@ async fn handle_message(
             info!("{apps:?}");
             let payload = serde_json::to_string(&response)?;
             socket.send(Message::Text(payload.into())).await?;
+        }
+        Action::Niri { value } => {
+            Command::new("niri")
+                .arg("msg")
+                .arg("action")
+                .arg(value)
+                .spawn()?;
         }
     };
     socket.send("I understood your message!".into()).await?;

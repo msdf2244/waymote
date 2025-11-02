@@ -202,28 +202,17 @@ function setupVolumeControl() {
   volumeDecrease.addEventListener("click", () => sendMessage("DecreaseVolume"));
 }
 
-function sendNiriCommand(value) {
-  sendMessage({ Niri: { value } });
-}
-
 function setupNiri() {
   const windowUp = document.querySelector("#window-up");
-  windowUp.onclick = () => sendNiriCommand("focus-window-up");
+  windowUp.onclick = () => sendMessage("FocusWindowUp");
   const windowDown = document.querySelector("#window-down");
-  windowDown.onclick = () => sendNiriCommand("focus-window-down");
-  const columnLeft = document.querySelector("#column-left");
-  columnLeft.onclick = () => sendNiriCommand("focus-column-left");
-  const columnRight = document.querySelector("#column-right");
-  columnRight.onclick = () => sendNiriCommand("focus-column-right");
-  const maximizeColumn = document.querySelector("#maximize-column");
-  maximizeColumn.onclick = () => sendNiriCommand("maximize-column");
-  const fullscreenWindow = document.querySelector("#fullscreen-window");
-  fullscreenWindow.onclick = () => sendNiriCommand("fullscreen-window");
+  const windowLeft = document.querySelector("#window-left");
+  const windowRight = document.querySelector("#window-right");
+  const maximizeWindow = document.querySelector("#maximizeWindow");
+  const fullscreenWindow = document.querySelector("#fullscreenWindow");
 
   const workspaceUp = document.querySelector("#workspace-up");
-  workspaceUp.onclick = () => sendNiriCommand("focus-workspace-up");
   const workspaceDown = document.querySelector("#workspace-down");
-  workspaceDown.onclick = () => sendNiriCommand("focus-workspace-down");
 }
 
 function change(n) {

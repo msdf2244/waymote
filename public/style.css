@@ -26,6 +26,11 @@ body {
   align-items: center;
 }
 
+#niri-controls-container {
+  display: grid;
+  grid-template-columns: auto auto auto;
+}
+
 #keyboard {
   border: 2px solid #333;
   width: 300px;
